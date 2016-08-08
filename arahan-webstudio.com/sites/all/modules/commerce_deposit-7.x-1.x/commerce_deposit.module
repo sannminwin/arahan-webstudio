@@ -1,0 +1,162 @@
+<?php
+
+/**
+ * Implements hook_menu().
+ */
+function commerce_deposit_menu() {
+  $items = array();
+  $items['admin/commerce/config/deposit'] = array(
+    'title' => 'Deposit settings',
+    'description' => 'Configuration for Commerce Deposit module',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('commerce_deposit_settings_form'),
+    'access arguments' => array('configure store'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+  return $items;
+}
+
+/**
+ * Settings form builder.
+ */
+function commerce_deposit_settings_form($form, &$form_state) {
+  
+  _commerce_deposit_check_config();
+  
+  /*if (!isset($fields[])) {
+  }*/
+  $form['commerce_deposit'] = array(
+    '#markup' => '<p>Hello</p>'
+  );
+  return system_settings_form($form);
+  
+}
+
+/**
+ * An internal function used to check if the module has been configured properly.
+ */
+function _commerce_deposit_check_config() {
+  
+  // Since we don't support the automatic creation of all the fields, entities,
+  // entity types to accommodate this module upon installation, let's display
+  // some status messages to indicate the proper configuration of this module.
+  
+  $form['#prefix'] = t('View the README for complete details.') . '&nbsp;' .
+    l('README', drupal_get_path('module', 'commerce_deposit') . '/README.md');
+  
+  // Grab a list of all the fields.
+  $fields = field_info_field_map();
+  dpm('fields');
+  dpm($fields);
+  
+  // Verify the Deposit line item type is set up properly.
+  /*$line_item_types = commerce_line_item_types();
+  dpm('line_item_types');
+  dpm($line_item_types);*/
+  if (
+    !isset($fields['field_commerce_deposit_product']) ||
+    $fields['field_commerce_deposit_product']['type'] != 'entityreference' ||
+    !isset($fields['field_commerce_deposit_product']['bundles']) ||
+    !isset($fields['field_commerce_deposit_product']['bundles']['commerce_line_item']) ||
+    !in_array('deposit', $fields['field_commerce_deposit_product']['bundles']['commerce_line_item'])
+  ) {
+    drupal_set_message(
+      t('You must add the Entity Reference field (field_commerce_deposit_product) to the Deposit line item type.'),
+      'warning'
+    );
+    drupal_set_message(
+      l(
+        t('Add Entity Reference field to Deposit line item type'),
+        'admin/commerce/config/line-items/deposit/fields'
+      ),
+      'warning'
+    );
+  }
+  
+  // Verify the product type is set up properly. Make sure at least one product
+  // type has the boolean field added to it.
+  $product_types = commerce_product_types();
+  dpm('product_types');
+  dpm($product_types);
+  if (
+    !isset($fields['field_commerce_deposit']) ||
+    $fields['field_commerce_deposit']['type'] != 'list_boolean' ||
+    !isset($fields['field_commerce_deposit']['bundles']) ||
+    !isset($fields['field_commerce_deposit']['bundles']['commerce_product']) ||
+    sizeof($fields['field_commerce_deposit']['bundles']['commerce_product']) == 0
+  ) {
+    drupal_set_message(
+      t('You must add the Boolean field (field_commerce_deposit) to a Product type'),
+      'warning'
+    );
+    drupal_set_message(
+      l(
+        t('Add Boolean field to a Product type'),
+        'admin/commerce/products/types'
+      ),
+      'warning'
+    );
+  }
+  
+}
+
+/**
+ * Implements hook_commerce_line_item_type_info().
+ */
+/*function commerce_deposit_commerce_line_item_type_info() {
+    return array(
+        'deposit' => array(
+            'name' => t('Deposit'),
+            'product' => TRUE,
+            'description' => t('Make a deposit for a product.'),
+            'add_form_submit_value' => t('Make a Deposit'),
+            'base' => 'commerce_product_line_item',
+        ),
+    );
+}*/
+
+/**
+ * Implements hook_commerce_line_item_type_info().
+ */
+function commerce_deposit_commerce_line_item_type_info() {
+  $line_item_types = array();
+  $line_item_types['deposit'] = array(
+    'name' => t('Deposit'),
+    'description' => t('Used to make a deposit towards a product.'),
+    'product' => FALSE,
+    'base' => 'custom_type'
+  );
+  return $line_item_types;
+}
+
+/**
+ * Implements hook_enable().
+ */
+function commerce_deposit_enable() {
+  //commerce_product_line_item_configuration(array('type' => 'commerce_deposit'));
+  commerce_line_item_configure_line_item_fields(array('commerce_deposit'));
+}
+
+
+
+/**
+ * Implements hook_form_alter().
+ */
+function commerce_deposit_form_commerce_cart_add_to_cart_form_alter(&$form, &$form_state, $form_id) {
+  //dpm($form_id); // DEVEL THROWS A WSOD
+  //drupal_set_message('<pre>' . print_r($form, true) . '</pre>');
+  // If the product allows a deposit, show the deposit button.
+  /*if (isset($form['#attributes']['class'][0]) && $form['#attributes']['class'][0] == 'commerce-add-to-cart') {
+    $prepopulate = 'edit[field_deposit_course_event][und]=' . $form['line_item_fields']['#entity']->line_item_label;
+    $form['deposit'] = array(
+      '#type' => 'button',
+      '#value' => 'Make a Deposit',
+      '#weight' => 999,
+      '#attributes' => array(
+        'onclick' => 'window.location = "/node/add/deposit?' . $prepopulate . '"; return false;'
+      )
+    );
+    //drupal_set_message('<pre>' . print_r($form, true) . '</pre>');
+  }*/
+}
+

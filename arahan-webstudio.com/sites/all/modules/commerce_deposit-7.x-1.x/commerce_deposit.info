@@ -1,0 +1,7 @@
+name = Commerce Deposit
+description = Allow customers to purchase a deposit for a product, instead of paying full price.
+package = Commerce (contrib)
+core = 7.x
+dependencies[] = commerce
+dependencies[] = commerce_product
+dependencies[] = commerce_line_item
