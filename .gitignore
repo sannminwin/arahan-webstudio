@@ -12,3 +12,4 @@ setting.php
 *Thumbs.db
 *.sass-cache*
 *~imageoptim*
+/drupalexp/
