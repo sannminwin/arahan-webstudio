@@ -12,4 +12,6 @@ setting.php
 *Thumbs.db
 *.sass-cache*
 *~imageoptim*
-/drupalexp/
+/sites/all/modules/drupalexp/modules/dexp_animation
+/sites/all/modules/drupalexp/modules/dexp_layerslider
+/sites/all/themes/drupalexp
